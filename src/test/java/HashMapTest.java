@@ -111,7 +111,7 @@ public class HashMapTest {
                 map.get(Integer.valueOf(i));
         }
         long t1 = System.currentTimeMillis();
-        System.out.println(map.getClass().getName() + (isPut ? ".put() " : ".get() ")
+        System.out.println(map.getClass() + (isPut ? ".put() " : ".get() ")
                 + (t1 - t0) + "ms");
     }
 
@@ -158,10 +158,16 @@ public class HashMapTest {
         map2.put(1200, 2500L);
         assertFalse(map1.equals(map2));
 
-        map1.put(1200, null);
+        try {
+            map1.put(1200, null);
+            fail("Excepting " + UnsupportedOperationException.class
+                    + " by inserting value = null");
+        } catch (UnsupportedOperationException e) {
+            // Ok, we waited for this
+        }
         assertFalse(map1.equals(map2));
 
-        map2.put(1200, null);
+        map2.remove(Integer.valueOf(1200));
         assertTrue(map1.equals(map2));
     }
 }
