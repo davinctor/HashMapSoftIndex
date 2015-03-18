@@ -47,6 +47,8 @@ public class OpenAddressingHashMap<Key,Value> extends AbstractMap<Key,Value> imp
     public Value put(Key key, Value value) {
         if (key == null)
             return null;
+        if (value == null)
+            throw new UnsupportedOperationException("Key and Value must not equals null");
         if (size >= maxSize * loadFactor) {
             resize(2 * maxSize);
         }

@@ -2,6 +2,7 @@
 import com.hashmap.OpenAddressingHashMap;
 import org.junit.Test;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -84,11 +85,83 @@ public class HashMapTest {
 
     @Test
     public void constructorTests() {
-
+        Map map = new OpenAddressingHashMap<Integer, Integer>();
+        assertEquals(0, map.size());
     }
 
+    /**
+     * TODO: Create test for throwing ConcurrentModificationException After adding support of fail-fast
+     * @throw ConcurrentModificationException when iterator work with not actual entry set
+     *
     @Test
     public void iteratorConcurrentModificationTest() {
 
+    }
+    **/
+
+    private static int LOAD_COUNT = 500000;
+
+
+    private void hashMapSpeedTest(Map<Integer, Integer> map, boolean isPut) {
+        long t0 = System.currentTimeMillis();
+        for (int i = 0; i < LOAD_COUNT; i++) {
+            if (isPut)
+                map.put(Integer.valueOf(i), Integer.valueOf(i));
+            else
+                map.get(Integer.valueOf(i));
+        }
+        long t1 = System.currentTimeMillis();
+        System.out.println(map.getClass().getName() + (isPut ? ".put() " : ".get() ")
+                + (t1 - t0) + "ms");
+    }
+
+
+    @Test
+    public void hashMapSpeedTest() {
+        Map<Integer, Integer> mapO = new OpenAddressingHashMap<Integer, Integer>();
+        Map<Integer,Integer> mapH = new HashMap<Integer, Integer>();
+        hashMapSpeedTest(mapO, true);
+        hashMapSpeedTest(mapH, true);
+        hashMapSpeedTest(mapO, false);
+        hashMapSpeedTest(mapH, false);
+    }
+
+    @Test
+    public void iteratorTest() {
+        OpenAddressingHashMap<Integer, Long> map = new OpenAddressingHashMap<Integer, Long>();
+        map.put(150, 400L);
+        map.put(300, 700L);
+        map.put(600, 1300L);
+
+        Iterator<Integer> iter = map.keySet().iterator();
+        Integer key;
+        while (iter.hasNext()) {
+            key = iter.next();
+            assertNotNull(map.get(key));
+        }
+    }
+
+    @Test
+    public void equalsTest() {
+        OpenAddressingHashMap<Integer, Long> map1 = new OpenAddressingHashMap<Integer, Long>();
+        map1.put(150, 400L);
+        map1.put(300, 700L);
+        map1.put(600, 1300L);
+
+        OpenAddressingHashMap<Integer, Long> map2 = new OpenAddressingHashMap<Integer, Long>();
+        map2.put(150, 400L);
+        map2.put(300, 700L);
+        map2.put(600, 1300L);
+
+        assertTrue(map1.equals(map2));
+
+        map2.put(1200, 2500L);
+        assertFalse(map1.equals(map2));
+
+        map1.put(1200, null);
+        assertFalse(map1.equals(map2));
+
+        map2.put(1200, null);
+        assertTrue(map1.equals(map2));
     }
 }
