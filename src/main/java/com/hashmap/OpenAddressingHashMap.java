@@ -5,7 +5,7 @@ import java.util.*;
 
 public class OpenAddressingHashMap<Key,Value> extends AbstractMap<Key,Value> implements Map<Key,Value> {
 
-    private static final int INIT_CAPACITY = 16;
+    private static final int INIT_CAPACITY = 13;
     private int size;
     private int maxSize;
 
@@ -14,7 +14,7 @@ public class OpenAddressingHashMap<Key,Value> extends AbstractMap<Key,Value> imp
     public HashEntry<Key, Value>[] values;
     public Set<Entry<Key,Value>> entrySet;
 
-    private double loadFactor = 0.75f;
+    private double loadFactor = 0.50f;
 
     public OpenAddressingHashMap() {
         this(INIT_CAPACITY);
@@ -22,12 +22,15 @@ public class OpenAddressingHashMap<Key,Value> extends AbstractMap<Key,Value> imp
 
     @SuppressWarnings("unchecked")
     public OpenAddressingHashMap(int capacity) {
-        values = new HashEntry[capacity];
         maxSize = capacity > INIT_CAPACITY ? capacity : INIT_CAPACITY;
+        values = new HashEntry[maxSize];
     }
 
     public int hash(Object key) {
-        return (key.hashCode() & 0x7fffffff) % maxSize;
+        int t = key.hashCode() & 0x7fffffff;
+//        if (lgM < 26)
+//            t = t % primes[lgM+5];
+        return t % maxSize;
     }
 
     @Override
