@@ -99,7 +99,7 @@ public class HashMapTest {
     }
     **/
 
-    private static int LOAD_COUNT = 500000;
+    private static int LOAD_COUNT = 5000000;
 
 
     private void hashMapSpeedTest(Map<Integer, Integer> map, boolean isPut) {
