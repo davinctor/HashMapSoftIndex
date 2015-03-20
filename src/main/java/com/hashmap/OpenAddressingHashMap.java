@@ -28,8 +28,6 @@ public class OpenAddressingHashMap<Key,Value> extends AbstractMap<Key,Value> imp
 
     public int hash(Object key) {
         int t = key.hashCode() & 0x7fffffff;
-//        if (lgM < 26)
-//            t = t % primes[lgM+5];
         return t % maxSize;
     }
 
