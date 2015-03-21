@@ -1,5 +1,7 @@
 package com.hashmap;
 
+import com.sun.org.apache.xpath.internal.SourceTree;
+
 import java.util.*;
 
 
@@ -27,10 +29,7 @@ public class OpenAddressingHashMap<Key,Value> extends AbstractMap<Key,Value> imp
     }
 
     public int hash(Object key) {
-        int t = key.hashCode() & 0x7fffffff;
-//        if (lgM < 26)
-//            t = t % primes[lgM+5];
-        return t % maxSize;
+        return (key.hashCode() & 0x7fffffff) % maxSize;
     }
 
     @Override
@@ -107,7 +106,6 @@ public class OpenAddressingHashMap<Key,Value> extends AbstractMap<Key,Value> imp
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Value remove(Object key) {
         if (!containsKey(key))
             return null;
@@ -115,12 +113,14 @@ public class OpenAddressingHashMap<Key,Value> extends AbstractMap<Key,Value> imp
         int i = hash(key);
         while (!key.equals(values[i].getKey()) )
             i = (i + 1) % maxSize;
+
         Value retValue = values[i].getValue();
         values[i] = null;
 
         i = (i + 1) % maxSize;
-        Map.Entry curEntry = values[i];
+        Map.Entry curEntry;
         while (values[i] != null) {
+            curEntry = values[i];
             values[i] = null;
             size--;
             put((Key) curEntry.getKey(),(Value) curEntry.getValue());
@@ -128,24 +128,23 @@ public class OpenAddressingHashMap<Key,Value> extends AbstractMap<Key,Value> imp
         }
         size--;
         isUpdated = true;
-        if (size > 0 && size == maxSize/8)
-            resize(maxSize / 2);
+
+
         return retValue;
     }
 
     public void clear() {
-        for (int i = 0; i < maxSize; i++)
-            values[i] = null;
+        Arrays.fill(values, null);
         size = 0;
     }
 
     @Override
     public Set<Entry<Key,Value>> entrySet() {
-        return new LinearProbingEntrySet();
+        return isUpdated ? (entrySet = new OpenAddressingEntrySet()) : entrySet;
     }
 
 
-    private final class LinearProbingEntrySet extends  AbstractSet<Entry<Key,Value>> {
+    private final class OpenAddressingEntrySet extends  AbstractSet<Entry<Key,Value>> {
         public Iterator<Entry<Key,Value>> iterator() {
             return new Iterator<Entry<Key,Value>>() {
 
@@ -166,12 +165,17 @@ public class OpenAddressingHashMap<Key,Value> extends AbstractMap<Key,Value> imp
                 public Entry<Key,Value> next() {
                     if (!hasNext)
                         throw new NoSuchElementException();
+                    // Clear after going next. We can do it, because we have own independence entry instances
+                    if (i != -1)
+                        entries[i] = null;
                     return entries[++i];
                 }
 
                 public void remove() {
+                    if (i == -1)
+                        throw new IllegalStateException("Before remove() you need to call next()");
+                    OpenAddressingHashMap.this.remove(entries[i].getKey());
                     entries[i] = null;
-                    OpenAddressingHashMap.this.size--;
                 }
             };
         }
@@ -201,10 +205,18 @@ public class OpenAddressingHashMap<Key,Value> extends AbstractMap<Key,Value> imp
     @SuppressWarnings("unchecked")
     private Entry[] getNotNullEntries() {
         Map.Entry<Key,Value>[] notNullValues = new Map.Entry[size];
-        for (int i = 0, j = 0; i < maxSize; i++)
-            if (values[i] != null)
-                notNullValues[j++] = values[i];
+        for (int i = 0, j = 0; i < maxSize; i++) {
+            if (values[i] != null) {
+                notNullValues[j++] = new HashEntry<Key, Value>(values[i]);
+
+            }
+        }
         isUpdated = false;
         return notNullValues;
+    }
+
+    private void outputMap() {
+        for (int i = 0; i < maxSize; i++)
+            System.out.println(values[i] == null ? null : values[i].getKey());
     }
 }

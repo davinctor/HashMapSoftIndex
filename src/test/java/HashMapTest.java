@@ -6,6 +6,7 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Random;
 
 import static org.junit.Assert.*;
 
@@ -74,14 +75,11 @@ public class HashMapTest {
                 fail("Value(Integer) getting from map(" + value +") check failed by values()");
             count++;
         }
-        assertEquals(count, 3);
+        assertEquals(3, count);
 
         Iterator<Map.Entry<Long,Integer>> iter3 = mapOA.entrySet().iterator();
-        Map.Entry<Long,Integer> entry;
         while (iter3.hasNext()) {
-            entry = iter3.next();
-            assertNotNull(entry.getKey());
-            assertNotNull(entry.getValue());
+            iter3.next();
             iter3.remove();
         }
         assertEquals(0, mapOA.size());
@@ -98,11 +96,27 @@ public class HashMapTest {
     @Test
     public void removeTest() {
         mapOA.put(2L, 45);
+        mapOA.put(4L, 60);
 
         // Because map.remove() wait for Object and "2" cast by default to Integer
         // that's why hash code different and Object by this key doesn't exists in map
-        assertNotEquals(Integer.valueOf(45), mapOA.remove(2));
-        assertEquals(Integer.valueOf(45), mapOA.remove(2L));
+        assertNull(mapOA.remove(2));
+        assertEquals(Integer.valueOf(60), mapOA.remove(4L));
+
+
+        for (int i = 1; i <= 100; i++)
+            mapOA.put(Long.valueOf(i+10), Integer.valueOf(i));
+
+        // Checking access to all elements after remove one of them
+        Random rand = new Random();
+        int randNum;
+        for (int i = 1; i <= 10; i++) {
+            randNum = rand.nextInt(110);
+            mapOA.remove(Long.valueOf(randNum));
+            for (int j = 1; j <= 100; j++)
+                mapOA.get(Long.valueOf(j + 10));
+        }
+
     }
 
     @Test
@@ -111,7 +125,7 @@ public class HashMapTest {
     }
 
     /**
-     * TODO: Create test for throwing ConcurrentModificationException After adding support of fail-fast
+     * TODO: Create test for throwing ConcurrentModificationException after adding support of fail-fast
      * @throw ConcurrentModificationException when iterator work with not actual entry set
      *
     @Test

@@ -12,6 +12,11 @@ public class HashEntry<Key, Value> implements Map.Entry<Key, Value> {
         this.value = value;
     }
 
+    public HashEntry(HashEntry<Key, Value> entry) {
+        this.key = entry.getKey();
+        this.value = entry.getValue();
+    }
+
     @Override
     public Key getKey() {
         return key;
